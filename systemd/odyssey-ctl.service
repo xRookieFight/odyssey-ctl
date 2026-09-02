@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Applies the user's profile once the graphical session is up.  Enable with:
+#
+#	systemctl --user enable --now odyssey-ctl.service
+
+[Unit]
+Description=Apply Odyssey display profile over DDC/CI
+Documentation=man:odyssey-ctl(1)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/odyssey-ctl apply
+
+# The display may still be negotiating its link right after login, and DDC/CI
+# has no way to report that, so retry a few times before giving up.
+Restart=on-failure
+RestartSec=5s
+StartLimitBurst=3
+
+[Install]
+WantedBy=graphical-session.target

@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Optional companion to the odyssey_ddc kernel module.
+#
+# Class based I2C instantiation is not available for DDC buses, so the module
+# never binds on its own.  This rule creates the client whenever a DDC bus
+# belonging to a graphics adapter appears, which makes the backlight device
+# show up without manual intervention.
+#
+# Install this rule only if the module is loaded; without it the write below is
+# harmless but pointless.
+
+ACTION!="add", GOTO="odyssey_ddc_end"
+SUBSYSTEM!="i2c-dev", GOTO="odyssey_ddc_end"
+
+KERNEL=="i2c-[0-9]*", ATTR{name}=="i915 gmbus*", \
+	RUN+="/bin/sh -c 'echo odyssey-ddc 0x37 > /sys/bus/i2c/devices/%k/../new_device 2>/dev/null || true'"
+
+LABEL="odyssey_ddc_end"

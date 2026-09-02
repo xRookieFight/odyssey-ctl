@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# DDC buses are owned by root and mode 0600 by default, which forces every
+# DDC/CI transaction through sudo.  Hand the buses that belong to a graphics
+# adapter to the i2c group instead.
+#
+# Create the group and add yourself to it before installing this rule:
+#
+#	groupadd -f i2c
+#	usermod -aG i2c "$USER"
+#
+# Membership is picked up on the next login.
+
+ACTION=="remove", GOTO="odyssey_ctl_end"
+SUBSYSTEM!="i2c-dev", GOTO="odyssey_ctl_end"
+
+KERNEL=="i2c-[0-9]*", ATTR{name}=="i915 gmbus*", GROUP="i2c", MODE="0660"
+KERNEL=="i2c-[0-9]*", ATTR{name}=="AMDGPU DM*", GROUP="i2c", MODE="0660"
+KERNEL=="i2c-[0-9]*", ATTR{name}=="NVIDIA i2c*", GROUP="i2c", MODE="0660"
+
+LABEL="odyssey_ctl_end"

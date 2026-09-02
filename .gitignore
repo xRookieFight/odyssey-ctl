@@ -1,0 +1,17 @@
+# Build products
+/odyssey-ctl
+*.o
+*.d
+
+# Kernel module build products
+*.ko
+*.ko.*
+*.mod
+*.mod.c
+*.mod.o
+*.symvers
+*.order
+.tmp_versions/
+.*.cmd
+kernel/Module.symvers
+kernel/modules.order

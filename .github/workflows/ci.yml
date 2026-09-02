@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Build (${{ matrix.cc }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: make CC=${{ matrix.cc }} CFLAGS="-O2 -g -Werror"
+
+      - name: Smoke test
+        run: |
+          ./odyssey-ctl --version
+          ./odyssey-ctl --help
+          ./odyssey-ctl features

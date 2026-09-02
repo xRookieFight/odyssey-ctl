@@ -1,0 +1,136 @@
+.\" SPDX-License-Identifier: GPL-2.0-or-later
+.TH ODYSSEY\-CTL 1 "2026" "odyssey-ctl 0.1.0" "User Commands"
+.SH NAME
+odyssey\-ctl \- control a DDC/CI capable display from the command line
+.SH SYNOPSIS
+.B odyssey\-ctl
+.RI [ OPTION ]...
+.I COMMAND
+.RI [ ARGUMENT ]...
+.SH DESCRIPTION
+.B odyssey\-ctl
+reads and writes the OSD settings of a monitor over DDC/CI, the VESA MCCS
+protocol carried on a display's DDC lines.
+It was written for the Samsung Odyssey G5 (G53F) but works with any display
+implementing MCCS 2.1.
+.PP
+The tool locates displays through
+.IR /sys/class/drm ,
+using the
+.I ddc/i2c-dev
+directory each connector exposes.
+Internal panels do not provide one and are skipped.
+.SH COMMANDS
+.TP
+.B list
+List connected displays that expose a DDC bus.
+.TP
+.B info
+Show the selected display's connector, bus and EDID identity.
+.TP
+.B features
+List the features this tool knows about, with their VCP codes and named values.
+.TP
+.B caps
+Dump the display's raw capability string.
+.TP
+.BI get " FEATURE"
+Read a feature and print its current and maximum value.
+.TP
+.BI set " FEATURE VALUE"
+Write a feature.
+.I VALUE
+is either a named value from
+.B features
+or a number.
+.TP
+.BI apply " [FILE]"
+Write every setting listed in a profile.
+Without
+.IR FILE ,
+.I $XDG_CONFIG_HOME/odyssey-ctl/profile.conf
+is used, falling back to
+.IR ~/.config/odyssey-ctl/profile.conf .
+.SH OPTIONS
+.TP
+.BR \-d ", " \-\-display " " \fINAME\fR
+Select a DRM connector, for example
+.IR card1\-HDMI\-A\-1 .
+Without this the first display found is used.
+.TP
+.BR \-b ", " \-\-bus " " \fIPATH\fR
+Use an i2c\-dev node directly, bypassing discovery.
+.TP
+.BR \-s ", " \-\-save
+Ask the display to persist the change across a power cycle.
+Some panels ignore the request.
+.TP
+.BR \-v ", " \-\-verbose
+Raise the log level.
+May be repeated.
+.TP
+.BR \-h ", " \-\-help
+Show a usage summary and exit.
+.TP
+.BR \-V ", " \-\-version
+Show version information and exit.
+.SH PROFILE FORMAT
+A profile is a sequence of
+.RI \(lq feature " = " value \(rq
+lines using the names
+.B features
+prints.
+Blank lines and lines starting with
+.B #
+are ignored.
+Unknown feature names and malformed values are reported and skipped.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+The operation failed.
+.TP
+.B 2
+The command line was invalid.
+.SH FILES
+.TP
+.I ~/.config/odyssey-ctl/profile.conf
+Default profile applied by
+.BR apply .
+.TP
+.I /usr/lib/udev/rules.d/60-odyssey-ctl.rules
+Grants the
+.B i2c
+group access to DDC buses.
+.SH NOTES
+DDC/CI set requests are not acknowledged by the display, so a rejected value is
+indistinguishable from success.
+Read the feature back to confirm a change took effect.
+.PP
+The protocol is timing sensitive.
+A display that has just woken up or is still training its link will NAK; the
+tool retries three times before reporting failure.
+.SH EXAMPLES
+.PP
+Dim the panel:
+.PP
+.RS
+.EX
+odyssey\-ctl set brightness 40
+.EE
+.RE
+.PP
+Switch a specific display to DisplayPort:
+.PP
+.RS
+.EX
+odyssey\-ctl \-d card1\-HDMI\-A\-1 set input dp\-1
+.EE
+.RE
+.SH SEE ALSO
+.BR ddcutil (1),
+.BR drm (7)
+.SH AUTHOR
+Written by xRookieFight.
